@@ -1,0 +1,117 @@
+<!-- Logo/Brand -->
+<div class="d-flex align-items-center justify-content-center p-3 mb-3">
+    <h5 class="m-0 text-white fw-bold">{{ app_name }}</h5>
+</div>
+
+<!-- Navigation Menu -->
+<div class="sidebar-menu">
+    <ul class="nav flex-column">
+        <!-- Dashboard -->
+        <li class="nav-item">
+            <a href="/dashboard" class="nav-link text-white {% if request.url.path == '/dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+            </a>
+        </li>
+
+        <!-- Inventory Section -->
+        <li class="nav-item">
+            <span class="nav-section-title d-block text-muted text-uppercase fs-6 ms-3 mt-4 mb-2">Inventory</span>
+        </li>
+        <li class="nav-item">
+            <a href="/products" class="nav-link text-white {% if '/products' in request.url.path %}active{% endif %}">
+                <i class="bi bi-box me-2"></i> Products
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/categories" class="nav-link text-white {% if '/categories' in request.url.path %}active{% endif %}">
+                <i class="bi bi-tag me-2"></i> Categories
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/suppliers" class="nav-link text-white {% if '/suppliers' in request.url.path %}active{% endif %}">
+                <i class="bi bi-truck me-2"></i> Suppliers
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/stock" class="nav-link text-white {% if '/stock' in request.url.path %}active{% endif %}">
+                <i class="bi bi-clipboard-check me-2"></i> Stock Levels
+            </a>
+        </li>
+
+        <!-- Sales Section -->
+        <li class="nav-item">
+            <span class="nav-section-title d-block text-muted text-uppercase fs-6 ms-3 mt-4 mb-2">Sales & Orders</span>
+        </li>
+        <li class="nav-item">
+            <a href="/pos" class="nav-link text-white {% if '/pos' in request.url.path %}active{% endif %}">
+                <i class="bi bi-cart me-2"></i> Point of Sale
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/orders" class="nav-link text-white {% if '/orders' in request.url.path %}active{% endif %}">
+                <i class="bi bi-bag me-2"></i> Order History
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/reservations" class="nav-link text-white {% if '/reservations' in request.url.path %}active{% endif %}">
+                <i class="bi bi-calendar-check me-2"></i> Reservations
+            </a>
+        </li>
+
+        <!-- Finance Section -->
+        <li class="nav-item">
+            <span class="nav-section-title d-block text-muted text-uppercase fs-6 ms-3 mt-4 mb-2">Finance</span>
+        </li>
+        <li class="nav-item">
+            <a href="/invoices" class="nav-link text-white {% if '/invoices' in request.url.path %}active{% endif %}">
+                <i class="bi bi-receipt me-2"></i> Invoices
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/expenses" class="nav-link text-white {% if '/expenses' in request.url.path %}active{% endif %}">
+                <i class="bi bi-cash me-2"></i> Expenses
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/reports" class="nav-link text-white {% if '/reports' in request.url.path %}active{% endif %}">
+                <i class="bi bi-bar-chart me-2"></i> Reports
+            </a>
+        </li>
+
+        <!-- Staff Section -->
+        <li class="nav-item">
+            <span class="nav-section-title d-block text-muted text-uppercase fs-6 ms-3 mt-4 mb-2">Staff</span>
+        </li>
+        <li class="nav-item">
+            <a href="/users" class="nav-link text-white {% if '/users' in request.url.path %}active{% endif %}">
+                <i class="bi bi-people me-2"></i> Users
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/schedules" class="nav-link text-white {% if '/schedules' in request.url.path %}active{% endif %}">
+                <i class="bi bi-calendar-week me-2"></i> Schedules
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- User Menu at Bottom -->
+{% if user and user.is_authenticated %}
+<div class="mt-auto p-3 border-top border-secondary">
+    <div class="d-flex align-items-center">
+        <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+             style="width: 32px; height: 32px; font-size: 14px;">
+            {{ user.display_name[:2].upper() }}
+        </div>
+        <div class="user-info text-truncate">
+            <div class="fw-semibold text-white">{{ user.display_name }}</div>
+            <div class="small text-muted">{{ user.role }}</div>
+        </div>
+        <div class="ms-auto">
+            <a href="/auth/logout" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}

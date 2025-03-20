@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', path='images/favicon.ico') }}" type="image/x-icon" onerror="this.href='data:image/x-icon;,'">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+
+    <!-- HTMX for interactive elements -->
+    <script src="https://unpkg.com/htmx.org@1.9.9" integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX" crossorigin="anonymous"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/main.css') }}" onerror="
+        const style = document.createElement('style');
+        style.textContent = `.sidebar{width:250px;min-height:100vh;transition:all 0.3s;}.sidebar.collapsed{margin-left:-250px;}.sidebar-menu{overflow-y:auto;max-height:calc(100vh - 150px);}.main-content{min-height:100vh;width:calc(100% - 250px);transition:all 0.3s;}@media (max-width:768px){.sidebar{margin-left:-250px;}.main-content{width:100%;}}`;
+        document.head.appendChild(style);
+    ">
+
+    <!-- Fallback inline styles -->
+    <style>
+        .sidebar {
+            width: 250px;
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+        .sidebar.collapsed {
+            margin-left: -250px;
+        }
+        /* Basic fallback styles */
+        .sidebar-menu {
+            overflow-y: auto;
+            max-height: calc(100vh - 150px);
+        }
+        .main-content {
+            min-height: 100vh;
+            width: calc(100% - 250px);
+            transition: all 0.3s;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -250px;
+            }
+            .main-content {
+                width: 100%;
+            }
+        }
+    </style>
+
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <!-- Flash messages -->
+    {% if messages %}
+    <div id="messages" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+        {% for message in messages %}
+        <div class="toast show mb-3 {% if message.type == 'error' %}text-bg-danger{% elif message.type == 'success' %}text-bg-success{% elif message.type == 'warning' %}text-bg-warning{% else %}text-bg-info{% endif %}"
+             role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">
+                    {% if message.type == 'error' %}Error{% elif message.type == 'success' %}Success{% elif message.type == 'warning' %}Warning{% else %}Information{% endif %}
+                </strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close" onclick="this.closest('.toast').remove()"></button>
+            </div>
+            <div class="toast-body">
+                {{ message.text }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- For login/auth pages without sidebar -->
+    {% block full_content %}{% endblock %}
+
+    <!-- Main layout with sidebar and content -->
+    {% block main_layout %}
+    <div class="d-flex vh-100">
+        <!-- Sidebar -->
+        <div class="sidebar bg-dark text-white" id="sidebar">
+            {% include "components/sidebar.html" %}
+        </div>
+
+        <!-- Main content -->
+        <div class="main-content d-flex flex-column flex-grow-1">
+            <!-- Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+                {% include "components/navbar.html" %}
+            </nav>
+
+            <!-- Page content -->
+            <main class="content flex-grow-1 bg-light p-4 overflow-auto">
+                <!-- Breadcrumbs -->
+                {% block breadcrumbs %}
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                        {% block breadcrumb_items %}{% endblock %}
+                    </ol>
+                </nav>
+                {% endblock %}
+
+                <!-- Page header -->
+                <div class="mb-4">
+                    <h1 class="h3">{% block page_title %}Page Title{% endblock %}</h1>
+                    <p class="text-muted small">{% block page_subtitle %}{% endblock %}</p>
+                </div>
+
+                <!-- Page content -->
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Footer -->
+            <footer class="footer bg-white py-3 border-top">
+                {% include "components/footer.html" %}
+            </footer>
+        </div>
+    </div>
+    {% endblock %}
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core JavaScript -->
+    <script src="{{ url_for('static', path='js/main.js') }}" onerror="
+        console.warn('Could not load main.js, using inline fallback');
+
+        // Basic toggle sidebar function
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('collapsed');
+                document.body.classList.toggle('sidebar-collapsed');
+            }
+        }
+
+        // Basic responsive behavior
+        function handleResponsive() {
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar && !sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                }
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', handleResponsive);
+        window.addEventListener('resize', handleResponsive);
+    "></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

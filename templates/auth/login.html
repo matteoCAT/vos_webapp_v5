@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Login - {{ app_name }}{% endblock %}
+
+{% block head_extra %}
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .login-container {
+        max-width: 400px;
+    }
+    .brand-logo {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #0d6efd;
+    }
+</style>
+{% endblock %}
+
+{% block full_content %}
+<div class="d-flex align-items-center justify-content-center vh-100">
+    <div class="login-container p-4 bg-white shadow rounded">
+        <div class="text-center mb-4">
+            <div class="brand-logo mb-3">{{ app_name }}</div>
+            <h4>Welcome back</h4>
+            <p class="text-muted">Sign in to your account</p>
+        </div>
+
+        <form method="post" action="/auth/login" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email address</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com" required>
+                    <div class="invalid-feedback">Please enter a valid email address.</div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between">
+                    <label for="password" class="form-label">Password</label>
+                    <a href="/auth/forgot-password" class="text-decoration-none small">Forgot password?</a>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-key"></i></span>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                    <div class="invalid-feedback">Please enter your password.</div>
+                </div>
+            </div>
+
+            <div class="mb-4 form-check">
+                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                <label class="form-check-label" for="remember">Remember me</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2">Sign in</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Form validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const forms = document.querySelectorAll('.needs-validation');
+
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+{% endblock %}

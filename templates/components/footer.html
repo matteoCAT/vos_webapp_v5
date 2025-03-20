@@ -1,0 +1,10 @@
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <span class="text-muted small">© {% if now is defined %}{{ now.year }}{% else %}2025{% endif %} {{ app_name }}. All rights reserved.</span>
+        </div>
+        <div class="text-end">
+            <span class="text-muted small">Version {{ app_version }}</span>
+        </div>
+    </div>
+</div>
