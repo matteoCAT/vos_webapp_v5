@@ -30,6 +30,9 @@ async def dashboard(request: Request):
     api_client = get_api_client(request)
 
     try:
+        # Fetch sites
+        sites = await api_client.get_sites()
+
         # Here we would fetch various data for the dashboard
         # For now, we'll just fetch some basic data
 
@@ -56,11 +59,12 @@ async def dashboard(request: Request):
             "dashboard/index.html",
             {
                 "request": request,
+                "user": request.scope["user"],
                 "messages": messages,
                 "recent_orders": recent_orders,
                 "inventory_status": inventory_status,
                 "sales_summary": sales_summary,
-                "user": request.scope["user"],
+                "sites": sites  # Pass sites to the template
             }
         )
 

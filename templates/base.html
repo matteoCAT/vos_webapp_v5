@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <title>{% block title %}{{ app_name }}{% if request.session.get('current_site_name') %} - {{ request.session.get('current_site_name') }}{% endif %}{% endblock %}</title>
 
     <!-- Favicon -->
     <link rel="icon" href="{{ url_for('static', path='images/favicon.ico') }}" type="image/x-icon" onerror="this.href='data:image/x-icon;,'">

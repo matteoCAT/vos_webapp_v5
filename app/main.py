@@ -126,13 +126,90 @@ async def debug_info(request: Request):
     return JSONResponse(info)
 
 
+# Site switch handler
+async def switch_site(request: Request):
+    """
+    Handle site switching and redirects back to previous page
+    """
+    # Get site ID from path params
+    site_id = request.path_params.get("site_id")
+
+    # If user is authenticated
+    if "user" in request.scope and request.user.is_authenticated and "session" in request.scope:
+        # Get API client
+        from app.api_client import get_api_client
+        api_client = get_api_client(request)
+
+        try:
+            # Get site details
+            sites = await api_client.get_sites()
+
+            # Find selected site
+            for site in sites:
+                if str(site.get("id")) == str(site_id):
+                    # Store current site in session
+                    request.session["current_site_id"] = site.get("id")
+                    request.session["current_site_name"] = site.get("name")
+
+                    # Add success message
+                    request.session["messages"] = [
+                        {"type": "success", "text": f"Switched to {site.get('name')}"}
+                    ]
+                    break
+        except Exception as e:
+            # Add error message
+            request.session["messages"] = [
+                {"type": "error", "text": f"Error switching site: {str(e)}"}
+            ]
+
+    # Redirect to previous page or dashboard
+    referer = request.headers.get("referer")
+    redirect_url = referer if referer else "/dashboard/"
+    return RedirectResponse(url=redirect_url, status_code=302)
+
+
+# Debug sites handler
+async def debug_sites(request: Request):
+    """
+    Debug endpoint to specifically test sites API integration
+    Only available in DEBUG mode
+    """
+    if not settings.DEBUG:
+        return RedirectResponse(url="/", status_code=302)
+
+    from app.api_client import get_api_client
+    api_client = get_api_client(request)
+
+    response_data = {
+        "authenticated": "user" in request.scope and getattr(request.user, "is_authenticated", False),
+        "api_base_url": settings.API_BASE_URL,
+        "sites_url": f"{settings.API_BASE_URL}/sites",
+        "error": None,
+        "sites": []
+    }
+
+    try:
+        # Try to fetch sites directly
+        response_data["sites"] = await api_client.get_sites()
+    except Exception as e:
+        response_data["error"] = str(e)
+
+    # Return JSON in debug mode
+    from starlette.responses import JSONResponse
+    return JSONResponse(response_data)
+
+
 # Routes collected from all modules
 routes = [
     # Root route
     Route("/", endpoint=homepage),
 
-    # Debug route (only active in DEBUG mode)
+    # Site switcher route
+    Route("/switch-site/{site_id:str}", endpoint=switch_site),
+
+    # Debug routes (only active in DEBUG mode)
     Route("/debug", endpoint=debug_info),
+    Route("/debug/sites", endpoint=debug_sites),
 
     # Mount static files - pointing to project root static folder
     Mount("/static", app=StaticFiles(directory=BASE_DIR / "static"), name="static"),
@@ -163,7 +240,7 @@ async def add_template_context(request, call_next):
     context = {
         "request": request,
         "messages": [],
-        "now": datetime.now(),
+        "now": datetime.now()
     }
 
     # Safely get messages from session if available

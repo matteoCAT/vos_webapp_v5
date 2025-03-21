@@ -183,6 +183,21 @@ class APIClient:
 
         return auth_data
 
+    async def get_sites(self) -> List[Dict[str, Any]]:
+        """
+        Get list of all restaurant sites/locations
+
+        Returns:
+            List of site dictionaries
+        """
+        try:
+            print(f"Fetching sites from {self.http_client.base_url}/sites")
+            return await self.get("/sites/")
+        except Exception as e:
+            print(f"Error fetching sites: {str(e)}")
+            # Return empty list on error rather than propagating exception
+            return []
+
     async def logout(self) -> None:
         """
         Log out the current user by invalidating the refresh token
