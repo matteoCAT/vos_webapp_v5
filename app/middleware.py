@@ -108,6 +108,113 @@ class AuthBackend(AuthenticationBackend):
         return AuthCredentials(permissions), user
 
 
+class ContextMiddleware(BaseHTTPMiddleware):
+    """
+    Middleware to handle context (company, site) based on URL structure
+    """
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
+        # Extract path parameters from URL
+        path_parts = request.url.path.strip('/').split('/')
+
+        # Initialize context
+        request.state.context = {
+            "company_id": None,
+            "site_id": None,
+            "remaining_path": None
+        }
+
+        # Extract URL structure
+        if len(path_parts) >= 1:
+            first_part = path_parts[0]
+
+            # Check if first part is a company ID
+            if first_part.startswith('company-'):
+                request.state.context["company_id"] = first_part.replace('company-', '')
+
+                # If there's a site ID
+                if len(path_parts) >= 2 and path_parts[1].startswith('site-'):
+                    request.state.context["site_id"] = path_parts[1].replace('site-', '')
+
+                    # Remaining path (without company and site prefix)
+                    if len(path_parts) > 2:
+                        request.state.context["remaining_path"] = '/'.join(path_parts[2:])
+                else:
+                    # Remaining path (without company prefix)
+                    if len(path_parts) > 1:
+                        request.state.context["remaining_path"] = '/'.join(path_parts[1:])
+
+            # Check if first part is a site ID
+            elif first_part.startswith('site-'):
+                request.state.context["site_id"] = first_part.replace('site-', '')
+
+                # Remaining path (without site prefix)
+                if len(path_parts) > 1:
+                    request.state.context["remaining_path"] = '/'.join(path_parts[1:])
+            else:
+                # No company or site in URL, regular path
+                request.state.context["remaining_path"] = '/'.join(path_parts)
+
+        # Process request with the context
+        response = await call_next(request)
+        return response
+
+
+class PermissionMiddleware(BaseHTTPMiddleware):
+    """
+    Middleware to check permissions based on URL context (company, site)
+    """
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
+        # Skip permission check for public routes
+        if request.url.path.startswith('/auth/') or request.url.path.startswith('/static/'):
+            return await call_next(request)
+
+        # Check if user is authenticated
+        if "user" not in request.scope or not request.user.is_authenticated:
+            if "session" in request.scope:
+                request.session["messages"] = [
+                    {"type": "error", "text": "Please log in to access this page"}
+                ]
+            return RedirectResponse('/auth/login', status_code=302)
+
+        # Get context
+        context = getattr(request.state, 'context', {})
+        company_id = context.get('company_id')
+        site_id = context.get('site_id')
+
+        # If company or site is specified, check permissions
+        if company_id or site_id:
+            # For now, just check if the user has access to the site
+            # In a real application, you would query the API to check permissions
+            if site_id:
+                try:
+                    # Import here to avoid circular import
+                    from app.api.sites_client import get_sites_client
+                    sites_client = get_sites_client(request)
+
+                    # Get site details
+                    site = await sites_client.get_site(site_id)
+
+                    # Check if site exists and user has access
+                    if not site:
+                        if "session" in request.scope:
+                            request.session["messages"] = [
+                                {"type": "error", "text": "Site not found or you don't have access"}
+                            ]
+                        return RedirectResponse('/dashboard', status_code=302)
+
+                except Exception as e:
+                    if "session" in request.scope:
+                        request.session["messages"] = [
+                            {"type": "error", "text": f"Error accessing site: {str(e)}"}
+                        ]
+                    return RedirectResponse('/dashboard', status_code=302)
+
+        # Continue with the request
+        return await call_next(request)
+
+
 class APIExceptionMiddleware(BaseHTTPMiddleware):
     """
     Middleware to handle API exceptions
@@ -122,8 +229,34 @@ class APIExceptionMiddleware(BaseHTTPMiddleware):
             # Handle API HTTP errors
 
             if exc.response.status_code == HTTP_401_UNAUTHORIZED:
-                # Token might be expired, attempt to refresh or redirect to login
-                # For now, just clear session and redirect to login
+                # Try to refresh the token if available
+                if "user" in request.scope and request.user.is_authenticated and request.user.refresh_token:
+                    try:
+                        # Import here to avoid circular import
+                        from app.api.auth_client import get_auth_client
+                        auth_client = get_auth_client(request)
+
+                        # Refresh token
+                        tokens = await auth_client.refresh_token()
+
+                        # Update tokens in session
+                        if "session" in request.scope:
+                            from app.config import settings
+                            request.session[settings.AUTH_TOKEN_NAME] = tokens["access_token"]
+                            request.session[settings.AUTH_REFRESH_TOKEN_NAME] = tokens["refresh_token"]
+
+                            # Add info message to session
+                            request.session["messages"] = [
+                                {"type": "info", "text": "Your session has been refreshed"}
+                            ]
+
+                            # Redirect to the same page to retry with new token
+                            return RedirectResponse(url=request.url.path, status_code=302)
+                    except Exception as refresh_error:
+                        print(f"Error refreshing token in middleware: {refresh_error}")
+                        # Continue with normal unauthorized flow if refresh fails
+
+                # Token refresh failed or wasn't possible, clear session and redirect to login
                 if "session" in request.scope:
                     request.session.clear()
 

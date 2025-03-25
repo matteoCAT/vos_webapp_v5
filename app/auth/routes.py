@@ -5,9 +5,8 @@ from starlette.templating import Jinja2Templates
 from pathlib import Path
 
 import httpx
-from app.api_client import get_api_client
+from app.api.auth_client import get_auth_client
 from app.config import settings
-from app.utils.form_utils import parse_form_data
 
 # Get base directory path (project root)
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -22,7 +21,7 @@ async def login_page(request: Request):
     """
     # If user is already authenticated, redirect to dashboard
     if "user" in request.scope and request.user.is_authenticated:
-        return RedirectResponse(url="/dashboard", status_code=302)
+        return RedirectResponse(url="/dashboard/", status_code=302)
 
     # Get any messages from session
     messages = request.session.pop("messages", []) if "session" in request.scope else []
@@ -39,7 +38,7 @@ async def login(request: Request):
     """
     # If user is already authenticated, redirect to dashboard
     if "user" in request.scope and request.user.is_authenticated:
-        return RedirectResponse(url="/dashboard", status_code=302)
+        return RedirectResponse(url="/dashboard/", status_code=302)
 
     # Get form data
     form = await request.form()
@@ -56,11 +55,11 @@ async def login(request: Request):
         return RedirectResponse(url="/auth/login", status_code=302)
 
     try:
-        # Get API client
-        api_client = get_api_client(request)
+        # Get auth client
+        auth_client = get_auth_client(request)
 
         # Attempt to login
-        auth_data = await api_client.login(email, password)
+        auth_data = await auth_client.login(email, password)
 
         # Store tokens in session
         request.session[settings.AUTH_TOKEN_NAME] = auth_data["tokens"]["access_token"]
@@ -75,7 +74,7 @@ async def login(request: Request):
         ]
 
         # Redirect to dashboard
-        return RedirectResponse(url="/dashboard", status_code=302)
+        return RedirectResponse(url="/dashboard/", status_code=302)
 
     except httpx.HTTPStatusError as e:
         # Handle API HTTP errors
@@ -119,11 +118,11 @@ async def logout(request: Request):
         return RedirectResponse(url="/auth/login", status_code=302)
 
     try:
-        # Get API client
-        api_client = get_api_client(request)
+        # Get auth client
+        auth_client = get_auth_client(request)
 
         # Log out user in API
-        await api_client.logout()
+        await auth_client.logout()
 
     except Exception:
         # Ignore errors, we'll clear the session anyway
@@ -148,7 +147,7 @@ async def forgot_password_page(request: Request):
     """
     # If user is already authenticated, redirect to dashboard
     if "user" in request.scope and request.user.is_authenticated:
-        return RedirectResponse(url="/dashboard", status_code=302)
+        return RedirectResponse(url="/dashboard/", status_code=302)
 
     # Get any messages from session
     messages = request.session.pop("messages", []) if "session" in request.scope else []
@@ -167,7 +166,7 @@ async def forgot_password(request: Request):
     """
     # If user is already authenticated, redirect to dashboard
     if "user" in request.scope and request.user.is_authenticated:
-        return RedirectResponse(url="/dashboard", status_code=302)
+        return RedirectResponse(url="/dashboard/", status_code=302)
 
     # Get form data
     form = await request.form()

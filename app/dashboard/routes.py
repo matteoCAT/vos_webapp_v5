@@ -4,7 +4,7 @@ from starlette.routing import Route
 from starlette.templating import Jinja2Templates
 from pathlib import Path
 
-from app.api_client import get_api_client
+from app.api.sites_client import get_sites_client
 
 # Get base directory path (project root)
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -25,48 +25,59 @@ async def dashboard(request: Request):
                 {"type": "warning", "text": "Please login to access the dashboard"}
             ]
         return RedirectResponse(url="/auth/login", status_code=302)
+    # Get URL context
+    context = getattr(request.state, "context", {})
+    company_id = context.get("company_id")
+    site_id = context.get("site_id")
 
-    # Get API client
-    api_client = get_api_client(request)
+    # Get sites client
+    sites_client = get_sites_client(request)
 
     try:
-        # Fetch sites
-        sites = await api_client.get_sites()
+        # Fetch sites for the dropdown
+        sites = await sites_client.get_sites(company_id=company_id)
 
-        # Here we would fetch various data for the dashboard
-        # For now, we'll just fetch some basic data
+        # If we have a site_id, get specific site details
+        current_site = None
+        if site_id:
+            try:
+                current_site = await sites_client.get_site(site_id)
+            except Exception as e:
+                print(f"Error fetching site details: {e}")
 
-        # Example: Get recent orders
-        # recent_orders = await api_client.get("/orders?limit=5")
-        recent_orders = []  # Placeholder
-
-        # Example: Get inventory status
-        # inventory_status = await api_client.get("/inventory/status")
-        inventory_status = []  # Placeholder
-
-        # Example: Get sales summary
-        # sales_summary = await api_client.get("/sales/summary")
+        # Example dummy data that would come from API
+        # In real implementation, this would be fetched from appropriate API endpoints
+        recent_orders = []
+        inventory_status = []
         sales_summary = {
             "today": {"total": 2580, "change": 12},
             "active_orders": 16,
             "reservations": 8
-        }  # Placeholder
+        }
 
-        # Get any messages from session
-        messages = request.session.pop("messages", []) if "session" in request.scope else []
+        # Customize title based on context
+        title = "Dashboard"
+        if current_site:
+            title = f"{current_site['name']} - Dashboard"
+        elif company_id:
+            title = f"Company Dashboard"
 
-        return templates.TemplateResponse(
-            "dashboard/index.html",
-            {
-                "request": request,
-                "user": request.scope["user"],
-                "messages": messages,
-                "recent_orders": recent_orders,
-                "inventory_status": inventory_status,
-                "sales_summary": sales_summary,
-                "sites": sites  # Pass sites to the template
-            }
-        )
+        # Prepare template context
+        template_context = {
+            "request": request,
+            "user": request.user if "user" in request.scope else None,
+            "title": title,
+            "sites": sites,
+            "current_site": current_site,
+            "company_id": company_id,
+            "site_id": site_id,
+            "recent_orders": recent_orders,
+            "inventory_status": inventory_status,
+            "sales_summary": sales_summary,
+            "messages": request.state.template_context.get("messages", []),
+        }
+
+        return templates.TemplateResponse("dashboard/index.html", template_context)
 
     except Exception as e:
         # Add error message to session
@@ -75,8 +86,7 @@ async def dashboard(request: Request):
                 {"type": "error", "text": f"Error loading dashboard: {str(e)}"}
             ]
 
-        # Since this is the dashboard, if we can't load it, redirect to login
-        # as there might be an authentication issue
+        # Since there was an error, redirect to login
         return RedirectResponse(url="/auth/login", status_code=302)
 
 
