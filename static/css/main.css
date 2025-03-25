@@ -1,0 +1,114 @@
+/* Main stylesheet for the Restaurant Manager web app */
+
+/* Layout styles */
+html, body {
+    height: 100%;
+}
+
+.sidebar {
+    width: 250px;
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+.sidebar.collapsed {
+    margin-left: -250px;
+}
+
+.sidebar-menu {
+    overflow-y: auto;
+    max-height: calc(100vh - 150px);
+}
+
+.main-content {
+    min-height: 100vh;
+    width: calc(100% - 250px);
+    transition: all 0.3s;
+}
+
+body.sidebar-collapsed .main-content {
+    width: 100%;
+}
+
+.content {
+    padding: 20px;
+    min-height: calc(100vh - 120px);
+}
+
+.footer {
+    height: 60px;
+}
+
+/* Custom nav styles */
+.nav-section-title {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left: 3px solid #fff;
+}
+
+/* Dashboard cards */
+.stat-card {
+    transition: all 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* User avatar */
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        margin-left: -250px;
+    }
+
+    .sidebar.collapsed {
+        margin-left: 0;
+    }
+
+    .main-content {
+        width: 100%;
+    }
+
+    body.sidebar-collapsed .main-content {
+        width: calc(100% - 250px);
+    }
+
+    .content {
+        padding: 15px;
+    }
+}
+
+/* Form styles */
+.required-field::after {
+    content: " *";
+    color: red;
+}
+
+/* Toast/alert animations */
+.toast {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
