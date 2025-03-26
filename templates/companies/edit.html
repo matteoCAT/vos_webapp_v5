@@ -1,0 +1,130 @@
+<!-- templates/companies/edit.html -->
+{% extends "base.html" %}
+
+{% block title %}Edit {{ company.name }} - {{ app_name }}{% endblock %}
+
+{% block page_title %}Edit Company{% endblock %}
+{% block page_subtitle %}Update company information{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="/companies">Companies</a></li>
+<li class="breadcrumb-item"><a href="/companies/{{ company.id }}">{{ company.name }}</a></li>
+<li class="breadcrumb-item active">Edit</li>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form action="/companies/{{ company.id }}/edit" method="post" class="needs-validation" novalidate>
+            <div class="row g-3">
+                <!-- Basic Information -->
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2">Basic Information</h5>
+                </div>
+
+                <!-- Name -->
+                <div class="col-md-6">
+                    <label for="name" class="form-label required-field">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ company.name }}" required>
+                    <div class="form-text">Official company name</div>
+                </div>
+
+                <!-- Display Name -->
+                <div class="col-md-6">
+                    <label for="display_name" class="form-label">Display Name</label>
+                    <input type="text" class="form-control" id="display_name" name="display_name" value="{{ company.display_name or '' }}">
+                    <div class="form-text">Name to display in the UI (defaults to official name)</div>
+                </div>
+
+                <!-- Slug -->
+                <div class="col-md-6">
+                    <label for="slug" class="form-label">Slug</label>
+                    <input type="text" class="form-control" id="slug" name="slug" value="{{ company.slug }}">
+                    <div class="form-text">URL-friendly identifier</div>
+                </div>
+
+                <!-- Description -->
+                <div class="col-md-6">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="2">{{ company.description or '' }}</textarea>
+                </div>
+
+                <!-- Schema Information -->
+                <div class="col-md-6">
+                    <label for="schema_name" class="form-label">Schema Name</label>
+                    <input type="text" class="form-control" id="schema_name" value="{{ company.schema_name }}" disabled readonly>
+                    <div class="form-text text-warning">Schema name cannot be changed after creation</div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="col-12 mt-4">
+                    <h5 class="border-bottom pb-2">Contact Information</h5>
+                </div>
+
+                <!-- Contact Name -->
+                <div class="col-md-6">
+                    <label for="contact_name" class="form-label">Contact Name</label>
+                    <input type="text" class="form-control" id="contact_name" name="contact_name" value="{{ company.contact_name or '' }}">
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ company.email or '' }}">
+                </div>
+
+                <!-- Phone -->
+                <div class="col-md-6">
+                    <label for="phone" class="form-label">Phone</label>
+                    <input type="text" class="form-control" id="phone" name="phone" value="{{ company.phone or '' }}">
+                </div>
+
+                <!-- Address -->
+                <div class="col-md-6">
+                    <label for="address" class="form-label">Address</label>
+                    <textarea class="form-control" id="address" name="address" rows="2">{{ company.address or '' }}</textarea>
+                </div>
+
+                <!-- Business Information -->
+                <div class="col-12 mt-4">
+                    <h5 class="border-bottom pb-2">Business Information</h5>
+                </div>
+
+                <!-- Tax ID -->
+                <div class="col-md-6">
+                    <label for="tax_id" class="form-label">Tax ID</label>
+                    <input type="text" class="form-control" id="tax_id" name="tax_id" value="{{ company.tax_id or '' }}">
+                </div>
+
+                <!-- Registration Number -->
+                <div class="col-md-6">
+                    <label for="registration_number" class="form-label">Registration Number</label>
+                    <input type="text" class="form-control" id="registration_number" name="registration_number" value="{{ company.registration_number or '' }}">
+                </div>
+
+                <!-- Status -->
+                <div class="col-12 mt-4">
+                    <h5 class="border-bottom pb-2">Status</h5>
+                </div>
+
+                <!-- Is Active -->
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if company.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">
+                            Active
+                        </label>
+                        <div class="form-text">Inactive companies cannot be accessed</div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="col-12 mt-4 d-flex justify-content-end">
+                    <a href="/companies/{{ company.id }}" class="btn btn-outline-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

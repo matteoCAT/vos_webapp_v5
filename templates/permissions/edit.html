@@ -1,0 +1,131 @@
+<!-- templates/permissions/edit.html -->
+{% extends "base.html" %}
+
+{% block title %}Edit {{ permission.name }} - {{ app_name }}{% endblock %}
+
+{% block page_title %}Edit Permission{% endblock %}
+{% block page_subtitle %}Update permission information{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="/permissions">Permissions</a></li>
+<li class="breadcrumb-item"><a href="/permissions/{{ permission.id }}">{{ permission.name }}</a></li>
+<li class="breadcrumb-item active">Edit</li>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form action="/permissions/{{ permission.id }}/edit" method="post" class="needs-validation" novalidate>
+            <div class="row g-3">
+                <!-- Basic Information -->
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2">Permission Information</h5>
+                </div>
+
+                <!-- Name -->
+                <div class="col-md-6">
+                    <label for="name" class="form-label required-field">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ permission.name }}" required>
+                    <div class="form-text">Human-readable name (e.g., "Create Users")</div>
+                </div>
+
+                <!-- Code (read-only) -->
+                <div class="col-md-6">
+                    <label for="code" class="form-label">Code</label>
+                    <input type="text" class="form-control" id="code" value="{{ permission.code }}" readonly disabled>
+                    <div class="form-text text-warning">Permission code cannot be changed after creation</div>
+                </div>
+
+                <!-- Module (read-only) -->
+                <div class="col-md-6">
+                    <label for="module" class="form-label">Module</label>
+                    <input type="text" class="form-control" id="module" value="{{ permission.module }}" readonly disabled>
+                    <div class="form-text text-warning">Module cannot be changed after creation</div>
+                </div>
+
+                <!-- Description -->
+                <div class="col-md-12">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3">{{ permission.description or '' }}</textarea>
+                    <div class="form-text">Detailed description of what this permission allows</div>
+                </div>
+
+                <!-- Submit -->
+                <div class="col-12 mt-4 d-flex justify-content-end">
+                    <a href="/permissions/{{ permission.id }}" class="btn btn-outline-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Permissions Usage Information -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Usage Information</h5>
+    </div>
+    <div class="card-body">
+        <p class="mb-3">This permission is used in the following roles:</p>
+
+        {% if permission.roles %}
+        <div class="list-group">
+            {% for role in permission.roles %}
+            <a href="/roles/{{ role.id }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold">{{ role.name }}</div>
+                    <div class="small text-muted">{{ role.description }}</div>
+                </div>
+                {% if role.is_system_role %}
+                <span class="badge bg-primary">System Role</span>
+                {% else %}
+                <span class="badge bg-secondary">Custom</span>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            This permission is not assigned to any roles yet.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Permission Section -->
+<div class="card border-danger mt-4">
+    <div class="card-header bg-danger text-white">
+        <h5 class="card-title mb-0">Danger Zone</h5>
+    </div>
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5>Delete this permission</h5>
+                <p class="text-muted mb-0">
+                    {% if permission.roles %}
+                    This permission is assigned to {{ permission.roles|length }} role(s). You need to remove this permission from all roles before deleting it.
+                    {% else %}
+                    Once you delete a permission, there is no going back. This action cannot be undone.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-danger"
+                        hx-post="/permissions/{{ permission.id }}/delete"
+                        hx-confirm="Are you sure you want to delete this permission? This action cannot be undone."
+                        hx-target="body"
+                        {% if permission.roles %}disabled{% endif %}>
+                    Delete Permission
+                </button>
+            </div>
+        </div>
+        {% if permission.roles %}
+        <div class="alert alert-warning mt-3 mb-0">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Cannot delete a permission that is assigned to roles. Please remove this permission from all roles first.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
