@@ -27,6 +27,9 @@ from app.middleware import (
 from app.auth.routes import routes as auth_routes
 from app.dashboard.routes import routes as dashboard_routes
 from app.users.routes import routes as users_routes
+from app.companies.routes import routes as companies_routes
+from app.roles.routes import routes as roles_routes
+from app.permissions.routes import routes as permissions_routes
 
 # Import other route modules as they're created
 
@@ -153,6 +156,9 @@ routes = [
     Mount("/auth", routes=auth_routes),
     Mount("/dashboard", routes=dashboard_routes),
     Mount("/users", routes=users_routes),
+    Mount("/companies", routes=companies_routes),
+    Mount("/roles", routes=roles_routes),
+    Mount("/permissions", routes=permissions_routes),
     # Mount other routes as they're created
 
     # Mount for hierarchical URL structure (company/site)

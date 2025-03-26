@@ -1,0 +1,142 @@
+<!-- templates/companies/create.html -->
+{% extends "base.html" %}
+
+{% block title %}Create Company - {{ app_name }}{% endblock %}
+
+{% block page_title %}Create Company{% endblock %}
+{% block page_subtitle %}Add a new company to the system{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="/companies">Companies</a></li>
+<li class="breadcrumb-item active">Create</li>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form action="/companies/create" method="post" class="needs-validation" novalidate>
+            <div class="row g-3">
+                <!-- Basic Information -->
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2">Basic Information</h5>
+                </div>
+
+                <!-- Name -->
+                <div class="col-md-6">
+                    <label for="name" class="form-label required-field">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                    <div class="form-text">Official company name</div>
+                </div>
+
+                <!-- Display Name -->
+                <div class="col-md-6">
+                    <label for="display_name" class="form-label">Display Name</label>
+                    <input type="text" class="form-control" id="display_name" name="display_name">
+                    <div class="form-text">Name to display in the UI (defaults to official name)</div>
+                </div>
+
+                <!-- Slug -->
+                <div class="col-md-6">
+                    <label for="slug" class="form-label">Slug</label>
+                    <input type="text" class="form-control" id="slug" name="slug">
+                    <div class="form-text">URL-friendly identifier (auto-generated if empty)</div>
+                </div>
+
+                <!-- Description -->
+                <div class="col-md-6">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="col-12 mt-4">
+                    <h5 class="border-bottom pb-2">Contact Information</h5>
+                </div>
+
+                <!-- Contact Name -->
+                <div class="col-md-6">
+                    <label for="contact_name" class="form-label">Contact Name</label>
+                    <input type="text" class="form-control" id="contact_name" name="contact_name">
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email">
+                </div>
+
+                <!-- Phone -->
+                <div class="col-md-6">
+                    <label for="phone" class="form-label">Phone</label>
+                    <input type="text" class="form-control" id="phone" name="phone">
+                </div>
+
+                <!-- Address -->
+                <div class="col-md-6">
+                    <label for="address" class="form-label">Address</label>
+                    <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                </div>
+
+                <!-- Business Information -->
+                <div class="col-12 mt-4">
+                    <h5 class="border-bottom pb-2">Business Information</h5>
+                </div>
+
+                <!-- Tax ID -->
+                <div class="col-md-6">
+                    <label for="tax_id" class="form-label">Tax ID</label>
+                    <input type="text" class="form-control" id="tax_id" name="tax_id">
+                </div>
+
+                <!-- Registration Number -->
+                <div class="col-md-6">
+                    <label for="registration_number" class="form-label">Registration Number</label>
+                    <input type="text" class="form-control" id="registration_number" name="registration_number">
+                </div>
+
+                <!-- Status -->
+                <div class="col-12 mt-4">
+                    <h5 class="border-bottom pb-2">Status</h5>
+                </div>
+
+                <!-- Is Active -->
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                        <label class="form-check-label" for="is_active">
+                            Active
+                        </label>
+                        <div class="form-text">Inactive companies cannot be accessed</div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="col-12 mt-4 d-flex justify-content-end">
+                    <a href="/companies" class="btn btn-outline-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Create Company</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Auto-generate slug from name
+    document.getElementById('name').addEventListener('input', function() {
+        if (!document.getElementById('slug').value) {
+            let slug = this.value.toLowerCase()
+                .replace(/[^\w\s-]/g, '') // Remove special chars
+                .replace(/\s+/g, '-') // Replace spaces with hyphens
+                .replace(/-+/g, '-'); // Replace multiple hyphens with single
+            document.getElementById('slug').value = slug;
+        }
+    });
+
+    // Auto-fill display name from name if empty
+    document.getElementById('name').addEventListener('input', function() {
+        if (!document.getElementById('display_name').value) {
+            document.getElementById('display_name').value = this.value;
+        }
+    });
+</script>
+{% endblock %}

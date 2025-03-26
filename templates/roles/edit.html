@@ -1,0 +1,162 @@
+<!-- templates/roles/edit.html -->
+{% extends "base.html" %}
+
+{% block title %}Edit {{ role.name }} - {{ app_name }}{% endblock %}
+
+{% block page_title %}Edit Role{% endblock %}
+{% block page_subtitle %}Update role information and permissions{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="/roles">Roles</a></li>
+<li class="breadcrumb-item"><a href="/roles/{{ role.id }}">{{ role.name }}</a></li>
+<li class="breadcrumb-item active">Edit</li>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        {% if role.is_system_role %}
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            This is a system role and cannot be modified. Role information is shown for reference only.
+        </div>
+        {% endif %}
+        <form action="/roles/{{ role.id }}/edit" method="post" class="needs-validation" novalidate {% if role.is_system_role %}disabled{% endif %}>
+            <div class="row g-3">
+                <!-- Basic Information -->
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2">Basic Information</h5>
+                </div>
+
+                <!-- Name -->
+                <div class="col-md-6">
+                    <label for="name" class="form-label required-field">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ role.name }}" required {% if role.is_system_role %}readonly{% endif %}>
+                    <div class="form-text">Unique role name (e.g. "Store Manager", "Cashier")</div>
+                </div>
+
+                <!-- Description -->
+                <div class="col-md-6">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="2" {% if role.is_system_role %}readonly{% endif %}>{{ role.description or '' }}</textarea>
+                    <div class="form-text">Describe what this role is for and what users can do</div>
+                </div>
+
+                <!-- System Role -->
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_system_role" name="is_system_role" {% if role.is_system_role %}checked disabled{% endif %}>
+                        <label class="form-check-label" for="is_system_role">
+                            System Role
+                        </label>
+                        <div class="form-text">System roles cannot be modified or deleted</div>
+                    </div>
+                </div>
+
+                <!-- Permissions -->
+                <div class="col-12 mt-4">
+                    <h5 class="border-bottom pb-2">Permissions</h5>
+                    <p class="text-muted">Select the permissions this role should have</p>
+                </div>
+
+                <!-- Permissions Selection -->
+                <div class="col-12">
+                    <div class="accordion" id="permissionsAccordion">
+                        {% for module, module_permissions in permissions_by_module.items() %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ module }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ module }}" aria-expanded="false" aria-controls="collapse{{ module }}">
+                                    {{ module|capitalize }} <span class="badge bg-primary ms-2">{{ module_permissions|length }}</span>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ module }}" class="accordion-collapse collapse" aria-labelledby="heading{{ module }}" data-bs-parent="#permissionsAccordion">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-12 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input select-all-module" type="checkbox" id="selectAll_{{ module }}" data-module="{{ module }}" {% if role.is_system_role %}disabled{% endif %}>
+                                                <label class="form-check-label fw-bold" for="selectAll_{{ module }}">
+                                                    Select All {{ module|capitalize }} Permissions
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% for permission in module_permissions %}
+                                        <div class="col-md-6 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input module-permission" type="checkbox" id="permission_{{ permission.id }}" name="permission_{{ permission.id }}" data-module="{{ module }}"
+                                                {% if permission.id in role_permission_ids %}checked{% endif %} {% if role.is_system_role %}disabled{% endif %}>
+                                                <label class="form-check-label" for="permission_{{ permission.id }}">
+                                                    {{ permission.name }}
+                                                    <div class="text-muted small">{{ permission.description }}</div>
+                                                    <small class="text-monospace text-muted">{{ permission.code }}</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="col-12 mt-4 d-flex justify-content-end">
+                    <a href="/roles/{{ role.id }}" class="btn btn-outline-secondary me-2">Cancel</a>
+                    {% if not role.is_system_role %}
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Handle select all checkboxes for each module
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set initial state of "select all" checkboxes
+        document.querySelectorAll('.select-all-module').forEach(selectAllCheckbox => {
+            const module = selectAllCheckbox.dataset.module;
+            const moduleCheckboxes = document.querySelectorAll(`.module-permission[data-module="${module}"]`);
+
+            // Check if all permissions are checked
+            const allChecked = Array.from(moduleCheckboxes).every(cb => cb.checked);
+            selectAllCheckbox.checked = allChecked;
+
+            // Set indeterminate state if some but not all are checked
+            selectAllCheckbox.indeterminate = !allChecked && Array.from(moduleCheckboxes).some(cb => cb.checked);
+        });
+
+        // Add event listeners to all "select all" checkboxes
+        document.querySelectorAll('.select-all-module').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const module = this.dataset.module;
+                const isChecked = this.checked;
+
+                // Check/uncheck all permissions for this module
+                document.querySelectorAll(`.module-permission[data-module="${module}"]`).forEach(permissionCheckbox => {
+                    permissionCheckbox.checked = isChecked;
+                });
+            });
+        });
+
+        // Update "select all" when individual permissions are changed
+        document.querySelectorAll('.module-permission').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const module = this.dataset.module;
+                const moduleCheckboxes = document.querySelectorAll(`.module-permission[data-module="${module}"]`);
+                const selectAllCheckbox = document.querySelector(`#selectAll_${module}`);
+
+                // Check if all permissions are checked
+                const allChecked = Array.from(moduleCheckboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+
+                // Set indeterminate state if some but not all are checked
+                selectAllCheckbox.indeterminate = !allChecked && Array.from(moduleCheckboxes).some(cb => cb.checked);
+            });
+        });
+    });
+</script>
+{% endblock %}
